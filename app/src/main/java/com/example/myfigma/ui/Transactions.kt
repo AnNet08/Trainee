@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myfigma.R
+import com.example.myfigma.bl.MainAction
+import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.*
 
 @Composable
@@ -71,7 +74,7 @@ fun TransactionsListItem(transactionItem: TransactionItemDto, onItemClick: (Stri
 }
 
 @Composable
-fun Searcher() {
+fun Searcher(state: MainState, dispatch: (MainAction) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -87,10 +90,19 @@ fun Searcher() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = stringResource(R.string.bottom_sheet_list_top_header),
-            style = TextStyle(fontSize = 18.sp, color = SurfaceSelected)
-        )
+        Box {
+            if (state.searchText.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.bottom_sheet_list_top_header),
+                    style = TextStyle(fontSize = 18.sp, color = SurfaceSelected)
+                )
+            }
+            BasicTextField(
+                value = state.searchText,
+                onValueChange = { value ->
+                    dispatch(MainAction.SearchTextChanged(value))
+                })
+        }
         Image(
             painter = painterResource(R.drawable.button_search),
             contentDescription = ""

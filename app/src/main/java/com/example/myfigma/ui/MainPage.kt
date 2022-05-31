@@ -21,12 +21,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myfigma.R
+import com.example.myfigma.bl.MainAction
+import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.Background
 import com.example.myfigma.ui.theme.ScrolledHeader
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainPage() {
+fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
     var transformationOffset by remember { mutableStateOf(0f) }
     val alpha = if (transformationOffset < 0.75f) 0f else (transformationOffset - 0.75f) * 4
     Column(
@@ -34,17 +36,24 @@ fun MainPage() {
             .background(color = ScrolledHeader.copy(alpha = alpha))
             .fillMaxSize()
     ) {
-        MyHeader(value = alpha)
-        ScreenContent(onItemScrollOffsetChange = {
+        MyHeader(value = alpha, dispatch = dispatch)
+        ScreenContent(
+            state = state,
+            dispatch = dispatch
+        ) {
             transformationOffset = it
-        })
+        }
         ShowBottomNavigation()
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ColumnScope.ScreenContent(onItemScrollOffsetChange: (Float) -> Unit) {
+fun ColumnScope.ScreenContent(
+    state: MainState,
+    dispatch: (MainAction) -> Unit,
+    onItemScrollOffsetChange: (Float) -> Unit
+) {
     Box(modifier = Modifier.weight(1f)) {
         val lazyListState = rememberLazyListState()
         var scrolledY = 0f
@@ -69,15 +78,16 @@ fun ColumnScope.ScreenContent(onItemScrollOffsetChange: (Float) -> Unit) {
                 }
             }
             stickyHeader {
-                Searcher()
+                Searcher(state, dispatch)
                 TransactionsListDivider()
             }
-            items(sectionTransactions.count()) { currentItem ->
-                if (sectionTransactions[currentItem] is TransactionHeaderDto)
-                    TransactionsListHeader(sectionTransactions[currentItem] as TransactionHeaderDto)
+            val transactions = state.transactions
+            items(transactions.count()) { currentItem ->
+                if (transactions[currentItem] is TransactionHeaderDto)
+                    TransactionsListHeader(transactions[currentItem] as TransactionHeaderDto)
                 else {
                     TransactionsListItem(
-                        sectionTransactions[currentItem] as TransactionItemDto,
+                        transactions[currentItem] as TransactionItemDto,
                         onItemClick = { })
                     TransactionsListDivider()
                 }
