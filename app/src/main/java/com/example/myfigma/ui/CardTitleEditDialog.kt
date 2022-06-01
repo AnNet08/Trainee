@@ -1,10 +1,11 @@
 package com.example.myfigma.ui
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -32,7 +34,6 @@ import com.example.myfigma.ui.theme.Background
 @Composable
 fun CardTitleEditDialog(
     card: CardDto,
-    idCard: Int,
     state: MainState,
     dispatch: (MainAction) -> Unit
 ) {
@@ -46,8 +47,6 @@ fun CardTitleEditDialog(
             )
         }
         val focusRequester = remember { FocusRequester() }
-        val keyboardController = LocalSoftwareKeyboardController.current
-
         Dialog(onDismissRequest = { dispatch(MainAction.OpenCardTitleEditDialog(false)) }) {
             Column(
                 modifier = Modifier
@@ -61,11 +60,21 @@ fun CardTitleEditDialog(
                     text = stringResource(R.string.card_title),
                     style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium)
                 )
+                val keyboardController = LocalSoftwareKeyboardController.current
+                val coroutineScope = rememberCoroutineScope()
                 TextField(
                     value = inputText,
                     onValueChange = { textTitle -> inputText = textTitle },
-                    modifier = Modifier.focusRequester(focusRequester),
-                    keyboardActions = KeyboardActions { keyboardController?.show() }
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { state ->
+                            if (state.hasFocus) {
+                                coroutineScope.launch {
+                                    delay(200)
+                                    keyboardController?.show()
+                                }
+                            }
+                        },
                 )
                 Row(
                     modifier = Modifier
@@ -89,7 +98,7 @@ fun CardTitleEditDialog(
                                 dispatch(
                                     MainAction.CardTitleChange(
                                         title = inputText.text,
-                                        idCard = idCard
+                                        idCard = card.id
                                     )
                                 )
                             }

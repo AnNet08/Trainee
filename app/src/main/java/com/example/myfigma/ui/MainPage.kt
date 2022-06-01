@@ -46,7 +46,6 @@ fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
             transformationOffset = it
         }
         ShowBottomNavigation()
-        //CardTitleEditDialog(state,dispatch)
     }
 }
 

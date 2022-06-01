@@ -91,7 +91,7 @@ fun ShowCardBox(cardDto: CardDto) {
                 .align(alignment = Alignment.BottomStart)
         )
         AutoSizeText(
-            text = cardDto.currency,
+            text = "" + cardDto.balanceSum.toString() + " " +cardDto.currency,
             textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
             modifier = Modifier
                 .align(alignment = Alignment.BottomEnd)
@@ -178,7 +178,7 @@ fun ShowCardColumn(cardDto: CardDto) {
                     contentDescription = null
                 )
                 AutoSizeText(
-                    text = cardDto.currency,
+                    text = "" + cardDto.balanceSum.toString() + " " +cardDto.currency,
                     textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium)
                 )
             }
@@ -187,7 +187,7 @@ fun ShowCardColumn(cardDto: CardDto) {
 }
 
 @Composable
-fun ShowCardConstraint(state: MainState, dispatch: (MainAction) -> Unit, cardDto: CardDto) {
+fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
     ConstraintLayout(
         modifier = Modifier
             .size(width = 312.dp, height = 184.dp)
@@ -265,7 +265,7 @@ fun ShowCardConstraint(state: MainState, dispatch: (MainAction) -> Unit, cardDto
                 }
         )
         AutoSizeText(
-            text = "" + cardDto.balanceSum + " " +cardDto.currency,
+            text = "" + String.format("%05.2f",cardDto.balanceSum) + " " +cardDto.currency,
             textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
             textAlign = TextAlign.End,
             modifier = Modifier

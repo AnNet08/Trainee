@@ -30,8 +30,7 @@ sealed class MainAction : Action {
     data class OpenChecks(val message: String) : MainAction()
     data class OpenTransfers(val message: String) : MainAction()
     data class OpenCardTitleEditDialog(val showDialog: Boolean) : MainAction()
-    //data class CardTitleChange(val title: String, val idCard: String) : MainAction()
-    data class CardTitleChange(val title: String, val idCard: Int) : MainAction()
+    data class CardTitleChange(val title: String, val idCard: String) : MainAction()
 }
 
 sealed class MainSideEffect : Effect {
@@ -82,8 +81,9 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
                 oldState.copy(showCardTitleEditDialog = action.showDialog)
             }
             is MainAction.CardTitleChange -> {
-                val curCards = oldState.cards.toList()
-                curCards[action.idCard].title = action.title
+                val curCards = oldState.cards.filter {card-> card.id == action.idCard }
+                for(it in curCards)
+                    it.title = action.title
                 oldState.copy(cards = curCards)
             }
         }

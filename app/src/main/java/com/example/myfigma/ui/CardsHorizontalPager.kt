@@ -23,9 +23,9 @@ fun ShowHorizontalPager(state: MainState, dispatch: (MainAction) -> Unit) {
         state = pagerState,
         contentPadding = PaddingValues(horizontal = 32.dp),
     ) { currentCard ->
-        ShowCardConstraint(state, dispatch, cards[currentCard])
+        ShowCardConstraint(dispatch, cards[currentCard])
     }
-    CardTitleEditDialog(card = cards[pagerState.currentPage], idCard = pagerState.currentPage, state = state,dispatch = dispatch)
+    CardTitleEditDialog(card = cards[pagerState.currentPage], state = state,dispatch = dispatch)
     HorizontalPagerIndicator(
         pagerState = pagerState,
         activeColor = Secondary,
