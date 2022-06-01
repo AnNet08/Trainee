@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.ExperimentalMaterialApi
@@ -14,6 +15,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,6 +46,7 @@ fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
             transformationOffset = it
         }
         ShowBottomNavigation()
+        //CardTitleEditDialog(state,dispatch)
     }
 }
 
@@ -52,7 +55,7 @@ fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
 fun ColumnScope.ScreenContent(
     state: MainState,
     dispatch: (MainAction) -> Unit,
-    onItemScrollOffsetChange: (Float) -> Unit
+    onTransformationOffsetChange: (Float) -> Unit
 ) {
     Box(modifier = Modifier.weight(1f)) {
         val lazyListState = rememberLazyListState()
@@ -72,9 +75,9 @@ fun ColumnScope.ScreenContent(
                             val firstItemSize = lazyListState.layoutInfo.visibleItemsInfo[0].size
                             lazyListState.firstVisibleItemScrollOffset.toFloat() / firstItemSize.toFloat()
                         } else 1f
-                        onItemScrollOffsetChange(alpha)
+                        onTransformationOffsetChange(alpha)
                     }) {
-                    MainScreen()
+                    MainScreen(state, dispatch)
                 }
             }
             stickyHeader {
@@ -83,42 +86,39 @@ fun ColumnScope.ScreenContent(
             }
             val transactions = state.transactions
             items(transactions.count()) { currentItem ->
-                if (transactions[currentItem] is TransactionHeaderDto)
-                    TransactionsListHeader(transactions[currentItem] as TransactionHeaderDto)
-                else {
-                    TransactionsListItem(
-                        transactions[currentItem] as TransactionItemDto,
-                        onItemClick = { })
-                    TransactionsListDivider()
-                }
+                TransactionsListItem(
+                    transactions[currentItem],
+                    onItemClick = { })
+                TransactionsListDivider()
             }
         }
     }
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(state: MainState, dispatch: (MainAction) -> Unit) {
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ShowHorizontalPager()
+        ShowHorizontalPager(state, dispatch)
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            ShowButton("Платежи", R.drawable.data_transfer)
-            ShowButton("Выписка", R.drawable.check)
+            ShowButton("Платежи", R.drawable.data_transfer) { dispatch(MainAction.OpenTransfers("Платежи")) }
+            ShowButton("Выписка", R.drawable.check) { dispatch(MainAction.OpenChecks("Выписки")) }
         }
     }
 }
 
 @Composable
-fun ShowButton(title: String, img: Int) {
+fun ShowButton(title: String, img: Int, dispatch: (String) -> Unit) {
     Column(
         modifier = Modifier
-            .clickable { /* Do something! */ }
+            .clip(RoundedCornerShape(14.dp))
+            .clickable { dispatch(title) }
             .padding(16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally

@@ -6,7 +6,7 @@ import com.example.myfigma.bl.nanoredux.State
 import com.example.myfigma.bl.nanoredux.Store
 import com.example.myfigma.demo.cards
 import com.example.myfigma.demo.sectionTransactions
-import com.example.myfigma.ui.Card
+import com.example.myfigma.ui.CardDto
 import com.example.myfigma.ui.TransactionItemDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,19 +17,26 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 data class MainState(
-    val cards: List<Card>,
-    val transactions: List<Any>,
-    val searchText: String = ""
+    val cards: List<CardDto>,
+    val transactions: List<TransactionItemDto>,
+    val searchText: String = "",
+    val showCardTitleEditDialog: Boolean = false
 ) : State
 
 sealed class MainAction : Action {
     data class SearchTextChanged(val searchText: String) : MainAction()
     object OpenMenu : MainAction()
     object OpenMessages : MainAction()
+    data class OpenChecks(val message: String) : MainAction()
+    data class OpenTransfers(val message: String) : MainAction()
+    data class OpenCardTitleEditDialog(val showDialog: Boolean) : MainAction()
+    //data class CardTitleChange(val title: String, val idCard: String) : MainAction()
+    data class CardTitleChange(val title: String, val idCard: Int) : MainAction()
 }
 
 sealed class MainSideEffect : Effect {
     object ShowTodoToast : MainSideEffect()
+    class ShowMessageToast(val message: String) : MainSideEffect()
 }
 
 class MainStore : Store<MainState, MainAction, MainSideEffect>,
@@ -60,8 +67,24 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
                 launch { sideEffect.emit(MainSideEffect.ShowTodoToast) }
                 oldState
             }
+            is MainAction.OpenChecks -> {
+                launch { sideEffect.emit(MainSideEffect.ShowMessageToast(action.message)) }
+                oldState
+            }
+            is MainAction.OpenTransfers -> {
+                launch { sideEffect.emit(MainSideEffect.ShowMessageToast(action.message)) }
+                oldState
+            }
             is MainAction.SearchTextChanged -> {
                 oldState.copy(searchText = action.searchText)
+            }
+            is MainAction.OpenCardTitleEditDialog -> {
+                oldState.copy(showCardTitleEditDialog = action.showDialog)
+            }
+            is MainAction.CardTitleChange -> {
+                val curCards = oldState.cards.toList()
+                curCards[action.idCard].title = action.title
+                oldState.copy(cards = curCards)
             }
         }
         if (newState != oldState) {

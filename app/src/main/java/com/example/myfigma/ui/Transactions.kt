@@ -111,19 +111,6 @@ fun Searcher(state: MainState, dispatch: (MainAction) -> Unit) {
 }
 
 @Composable
-fun TransactionsListHeader(transactionHeader: TransactionHeaderDto) {
-    Text(
-        text = transactionHeader.title,
-        style = TextStyle(fontSize = 18.sp, color = SurfaceSelected),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .background(color = Surface)
-            .padding(horizontal = 16.dp, vertical = 13.dp)
-    )
-}
-
-@Composable
 fun TransactionsListDivider() {
     Divider(
         color = Divider,

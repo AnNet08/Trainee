@@ -43,7 +43,9 @@ class MainActivity : ComponentActivity(),
             when (effect) {
                 MainSideEffect.ShowTodoToast -> {
                     Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show()
-
+                }
+                is MainSideEffect.ShowMessageToast -> {
+                    Toast.makeText(this, effect.message + " не реалізовані", Toast.LENGTH_SHORT).show()
                 }
             }
         }.launchIn(this)

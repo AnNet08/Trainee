@@ -1,10 +1,12 @@
 package com.example.myfigma.ui
 
-data class Card(
-    val title: String,
-    val id: String,
+data class CardDto(
+    var id: String,
+    var title: String,
+    val account: String,
     val defaultText: String,
-    val balance: String
+    val balanceSum: String,
+    val currency: String
 )
 
 data class TransactionItemDto(
@@ -13,8 +15,4 @@ data class TransactionItemDto(
     val iban: String = "",
     val attention: String = "",
     val sum: String = ""
-)
-
-data class TransactionHeaderDto(
-    val title: String = ""
 )

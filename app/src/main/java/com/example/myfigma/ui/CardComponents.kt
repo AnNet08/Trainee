@@ -2,6 +2,7 @@ package com.example.myfigma.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -13,17 +14,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.myfigma.R
+import com.example.myfigma.bl.MainAction
+import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.CardBgFinish
 import com.example.myfigma.ui.theme.CardBgStart
 
 @Composable
-fun ShowCardBox(card: Card) {
+fun ShowCardBox(cardDto: CardDto) {
     Box(
         modifier = Modifier
             .size(width = 312.dp, height = 184.dp)
@@ -43,7 +47,7 @@ fun ShowCardBox(card: Card) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = card.title,
+                text = cardDto.title,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -63,7 +67,7 @@ fun ShowCardBox(card: Card) {
                 .align(alignment = Alignment.TopEnd)
         )
         Text(
-            text = card.id,
+            text = cardDto.account,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(fontSize = 14.sp),
@@ -72,7 +76,7 @@ fun ShowCardBox(card: Card) {
                 .widthIn(0.dp, 280.dp),
         )
         Text(
-            text = card.defaultText,
+            text = cardDto.defaultText,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(fontSize = 10.sp),
@@ -87,7 +91,7 @@ fun ShowCardBox(card: Card) {
                 .align(alignment = Alignment.BottomStart)
         )
         AutoSizeText(
-            text = card.balance,
+            text = cardDto.currency,
             textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
             modifier = Modifier
                 .align(alignment = Alignment.BottomEnd)
@@ -97,7 +101,7 @@ fun ShowCardBox(card: Card) {
 }
 
 @Composable
-fun ShowCardColumn(card: Card) {
+fun ShowCardColumn(cardDto: CardDto) {
     Column(
         modifier = Modifier
             .size(width = 312.dp, height = 184.dp)
@@ -127,7 +131,7 @@ fun ShowCardColumn(card: Card) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = card.title,
+                        text = cardDto.title,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
@@ -146,7 +150,7 @@ fun ShowCardColumn(card: Card) {
                 )
             }
             Text(
-                text = card.id,
+                text = cardDto.account,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 style = TextStyle(fontSize = 14.sp),
@@ -156,7 +160,7 @@ fun ShowCardColumn(card: Card) {
         }
         Column(verticalArrangement = Arrangement.Bottom) {
             Text(
-                text = card.defaultText,
+                text = cardDto.defaultText,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
                 style = TextStyle(fontSize = 10.sp),
@@ -174,7 +178,7 @@ fun ShowCardColumn(card: Card) {
                     contentDescription = null
                 )
                 AutoSizeText(
-                    text = card.balance,
+                    text = cardDto.currency,
                     textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium)
                 )
             }
@@ -183,7 +187,7 @@ fun ShowCardColumn(card: Card) {
 }
 
 @Composable
-fun ShowCardConstraint(card: Card) {
+fun ShowCardConstraint(state: MainState, dispatch: (MainAction) -> Unit, cardDto: CardDto) {
     ConstraintLayout(
         modifier = Modifier
             .size(width = 312.dp, height = 184.dp)
@@ -200,7 +204,7 @@ fun ShowCardConstraint(card: Card) {
     ) {
         val (titleText, editImg, walletImg, idText, defaultText, starImg, balanceText) = createRefs()
         Text(
-            text = card.title,
+            text = cardDto.title,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
@@ -213,6 +217,8 @@ fun ShowCardConstraint(card: Card) {
             painter = painterResource(R.drawable.edit),
             contentDescription = null,
             modifier = Modifier
+                .clickable {dispatch(MainAction.OpenCardTitleEditDialog(true))
+                }
                 .constrainAs(editImg) {
                     bottom.linkTo(titleText.bottom)
                     top.linkTo(titleText.top)
@@ -228,7 +234,7 @@ fun ShowCardConstraint(card: Card) {
                 }
         )
         Text(
-            text = card.id,
+            text = cardDto.account,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(fontSize = 14.sp),
@@ -239,7 +245,7 @@ fun ShowCardConstraint(card: Card) {
                 }
         )
         Text(
-            text = card.defaultText,
+            text = cardDto.defaultText,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(fontSize = 10.sp),
@@ -259,8 +265,9 @@ fun ShowCardConstraint(card: Card) {
                 }
         )
         AutoSizeText(
-            text = card.balance,
+            text = "" + cardDto.balanceSum + " " +cardDto.currency,
             textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
+            textAlign = TextAlign.End,
             modifier = Modifier
                 .padding(start = 32.dp)
                 .constrainAs(balanceText) {
@@ -269,43 +276,4 @@ fun ShowCardConstraint(card: Card) {
                     end.linkTo(parent.end)
                 })
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ShowCardColumnPreview() {
-    ShowCardColumn(
-        Card(
-            "Title LongLongTitle Very Long Title LongLongTitle Very Long Title",
-            "UA 000000000000000",
-            "По умолчанию",
-            "11 5004444444444 500.00 UAH"
-        )
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ShowCardConstraintPreview() {
-    ShowCardConstraint(
-        Card(
-            "Title LongLongTitle Very Long Title LongLongTitle Very Long Title",
-            "UA 000000000000000",
-            "По умолчанию",
-            "11 5004444444444 500.00 UAH"
-        )
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ShowCardBoxPreview() {
-    ShowCardBox(
-        Card(
-            "Title LongLongTitle Very Long Title LongLongTitle Very Long Title",
-            "UA 000000000000000",
-            "По умолчанию",
-            "11 5004444444444 500.00 UAH"
-        )
-    )
 }

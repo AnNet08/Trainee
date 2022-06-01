@@ -5,4 +5,7 @@
     <string name="bottom_navigation_deposit">Депозиты</string>
     <string name="bottom_navigation_settings">Еще</string>
     <string name="bottom_sheet_list_top_header">Последние операции</string>
+    <string name="card_title">Наименование</string>
+    <string name="cancel_text">Отмена</string>
+    <string name="ok_text">Ok</string>
 </resources>
