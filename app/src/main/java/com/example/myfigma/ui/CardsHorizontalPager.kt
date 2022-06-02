@@ -18,6 +18,7 @@ import com.google.accompanist.pager.rememberPagerState
 @Composable
 fun ShowHorizontalPager(state: MainState, dispatch: (MainAction) -> Unit) {
     val pagerState = rememberPagerState()
+    val cards = state.cards.toList()
     HorizontalPager(
         count = cards.count(),
         state = pagerState,

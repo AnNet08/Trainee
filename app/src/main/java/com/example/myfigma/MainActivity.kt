@@ -47,6 +47,9 @@ class MainActivity : ComponentActivity(),
                 is MainSideEffect.ShowMessageToast -> {
                     Toast.makeText(this, effect.message + " не реалізовані", Toast.LENGTH_SHORT).show()
                 }
+                is MainSideEffect.ShowErrorMessage -> {
+                    Toast.makeText(this, effect.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }.launchIn(this)
     }

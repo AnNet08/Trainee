@@ -38,7 +38,7 @@ fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
             .background(color = ScrolledHeader.copy(alpha = alpha))
             .fillMaxSize()
     ) {
-        MyHeader(value = alpha, dispatch = dispatch)
+        MyHeader(value = alpha, state = state, dispatch = dispatch)
         ScreenContent(
             state = state,
             dispatch = dispatch

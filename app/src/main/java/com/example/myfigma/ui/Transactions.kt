@@ -10,6 +10,7 @@ import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
@@ -90,7 +91,7 @@ fun Searcher(state: MainState, dispatch: (MainAction) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Box {
+        Box{
             if (state.searchText.isEmpty()) {
                 Text(
                     text = stringResource(R.string.bottom_sheet_list_top_header),

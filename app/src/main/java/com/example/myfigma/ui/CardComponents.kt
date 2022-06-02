@@ -16,13 +16,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.myfigma.R
 import com.example.myfigma.bl.MainAction
-import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.CardBgFinish
 import com.example.myfigma.ui.theme.CardBgStart
 
@@ -91,7 +89,7 @@ fun ShowCardBox(cardDto: CardDto) {
                 .align(alignment = Alignment.BottomStart)
         )
         AutoSizeText(
-            text = "" + cardDto.balanceSum.toString() + " " +cardDto.currency,
+            text = "" + cardDto.balanceSum.toString() + " " + cardDto.currency,
             textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
             modifier = Modifier
                 .align(alignment = Alignment.BottomEnd)
@@ -178,7 +176,7 @@ fun ShowCardColumn(cardDto: CardDto) {
                     contentDescription = null
                 )
                 AutoSizeText(
-                    text = "" + cardDto.balanceSum.toString() + " " +cardDto.currency,
+                    text = "" + cardDto.balanceSum.toString() + " " + cardDto.currency,
                     textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium)
                 )
             }
@@ -187,7 +185,8 @@ fun ShowCardColumn(cardDto: CardDto) {
 }
 
 @Composable
-fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
+fun ShowCardConstraint(dispatch: (MainAction) -> Unit, card: CardDto) {
+    val favouriteImg = if (card.favourite in 1..2) R.drawable.star else R.drawable.not_selected_star
     ConstraintLayout(
         modifier = Modifier
             .size(width = 312.dp, height = 184.dp)
@@ -204,7 +203,7 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
     ) {
         val (titleText, editImg, walletImg, idText, defaultText, starImg, balanceText) = createRefs()
         Text(
-            text = cardDto.title,
+            text = card.title,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
@@ -217,7 +216,8 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
             painter = painterResource(R.drawable.edit),
             contentDescription = null,
             modifier = Modifier
-                .clickable {dispatch(MainAction.OpenCardTitleEditDialog(true))
+                .clickable {
+                    dispatch(MainAction.OpenCardTitleEditDialog(true))
                 }
                 .constrainAs(editImg) {
                     bottom.linkTo(titleText.bottom)
@@ -234,7 +234,7 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
                 }
         )
         Text(
-            text = cardDto.account,
+            text = card.account,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(fontSize = 14.sp),
@@ -245,7 +245,7 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
                 }
         )
         Text(
-            text = cardDto.defaultText,
+            text = card.defaultText,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
             style = TextStyle(fontSize = 10.sp),
@@ -257,15 +257,18 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, cardDto: CardDto) {
                 .padding(vertical = 8.dp)
         )
         Image(
-            painter = painterResource(R.drawable.star),
+            painter = painterResource(favouriteImg),
             contentDescription = null,
             modifier = Modifier
+                .clickable {
+                    dispatch(MainAction.ChangeFavouriteCards(card))
+                }
                 .constrainAs(starImg) {
                     bottom.linkTo(parent.bottom)
                 }
         )
         AutoSizeText(
-            text = "" + String.format("%05.2f",cardDto.balanceSum) + " " +cardDto.currency,
+            text = "" + String.format("%05.2f", card.balanceSum) + " " + card.currency,
             textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
             textAlign = TextAlign.End,
             modifier = Modifier

@@ -1,5 +1,7 @@
 package com.example.myfigma.bl
 
+import androidx.compose.ui.res.stringResource
+import com.example.myfigma.R
 import com.example.myfigma.bl.nanoredux.Action
 import com.example.myfigma.bl.nanoredux.Effect
 import com.example.myfigma.bl.nanoredux.State
@@ -20,7 +22,8 @@ data class MainState(
     val cards: List<CardDto>,
     val transactions: List<TransactionItemDto>,
     val searchText: String = "",
-    val showCardTitleEditDialog: Boolean = false
+    val showCardTitleEditDialog: Boolean = false,
+    val cardsAmount: Double = 0.00
 ) : State
 
 sealed class MainAction : Action {
@@ -31,11 +34,15 @@ sealed class MainAction : Action {
     data class OpenTransfers(val message: String) : MainAction()
     data class OpenCardTitleEditDialog(val showDialog: Boolean) : MainAction()
     data class CardTitleChange(val title: String, val idCard: String) : MainAction()
+    data class ShowTransactionsList(val list: List<TransactionItemDto>) : MainAction()
+    data class ChangeFavouriteCards(val card: CardDto) : MainAction()
+    data class ShowErrorMessage(val message: String) : MainAction()
 }
 
 sealed class MainSideEffect : Effect {
     object ShowTodoToast : MainSideEffect()
     class ShowMessageToast(val message: String) : MainSideEffect()
+    class ShowErrorMessage(val message: String) : MainSideEffect()
 }
 
 class MainStore : Store<MainState, MainAction, MainSideEffect>,
@@ -45,7 +52,8 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
         MutableStateFlow(
             MainState(
                 transactions = sectionTransactions,
-                cards = cards
+                cards = cards,
+                cardsAmount = getCardsAmount(cards)
             )
         )
 
@@ -75,20 +83,63 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
                 oldState
             }
             is MainAction.SearchTextChanged -> {
+                launch {
+                    showFilteredTransactionsList(action.searchText)
+                }
                 oldState.copy(searchText = action.searchText)
             }
             is MainAction.OpenCardTitleEditDialog -> {
                 oldState.copy(showCardTitleEditDialog = action.showDialog)
             }
             is MainAction.CardTitleChange -> {
-                val curCards = oldState.cards.filter {card-> card.id == action.idCard }
-                for(it in curCards)
+                val curCards = cards.filter { card -> card.id == action.idCard }
+                for (it in curCards) {
                     it.title = action.title
-                oldState.copy(cards = curCards)
+                }
+                oldState.copy(cards = cards)
+            }
+            is MainAction.ShowTransactionsList -> {
+                oldState.copy(transactions = action.list)
+            }
+            is MainAction.ShowErrorMessage -> {
+                launch { sideEffect.emit(MainSideEffect.ShowErrorMessage(action.message)) }
+                oldState
+            }
+            is MainAction.ChangeFavouriteCards -> {
+                val curCards = cards.filter { card -> card.id == action.card.id }
+                for (card in curCards) {
+                    if (card.favourite > 0) {
+                        card.favourite = 0
+                    }
+                    else {
+                        val favouriteCards = cards.filter { currentCard -> currentCard.favourite > 0 }
+                        if(favouriteCards.count() < 2){
+                            card.favourite++
+                        }
+                        else{
+                            dispatch(MainAction.ShowErrorMessage("Неможливо вибрати більше двох улюблених карт!"))
+                        }
+                    }
+                }
+                val sortedCards = cards.sortedByDescending { it.favourite }
+                oldState.copy(cards = sortedCards)
             }
         }
         if (newState != oldState) {
             state.value = newState
         }
+    }
+
+    private fun getCardsAmount(cards: List<CardDto>):Double{
+        return cards.fold(0.0){previous, item-> previous + item.balanceSum}
+    }
+
+    private fun showFilteredTransactionsList(text: String) {
+        val filtered = sectionTransactions.filter {
+            it.title.contains(text, ignoreCase = true) ||
+                    it.iban.contains(text, ignoreCase = true) ||
+                    it.sum.contains(text, ignoreCase = true)
+        }
+        dispatch(MainAction.ShowTransactionsList(filtered))
     }
 }

@@ -16,9 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myfigma.R
 import com.example.myfigma.bl.MainAction
+import com.example.myfigma.bl.MainState
 
 @Composable
-fun MyHeader(value: Float, dispatch: (MainAction) -> Unit) {
+fun MyHeader(value: Float, state: MainState, dispatch: (MainAction) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,7 +44,7 @@ fun MyHeader(value: Float, dispatch: (MainAction) -> Unit) {
                 alpha = 1 - value
             )
             AutoSizeText(
-                text = "11 500 44444444444444444 500.00 UA",
+                text = "" + String.format("%05.2f",state.cardsAmount),
                 modifier = Modifier
                     .alpha(value),
                 textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Medium),
@@ -56,13 +57,5 @@ fun MyHeader(value: Float, dispatch: (MainAction) -> Unit) {
             modifier = Modifier
                 .clickable { dispatch(MainAction.OpenMessages) }
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MyHeaderPreview() {
-    MyHeader(1f) {
-        //Preview
     }
 }

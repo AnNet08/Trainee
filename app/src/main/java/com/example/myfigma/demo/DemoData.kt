@@ -5,65 +5,33 @@ import com.example.myfigma.ui.CardDto
 import com.example.myfigma.ui.TransactionItemDto
 import java.math.BigDecimal
 
-//val cards = listOf(
-//    CardDto(
-//        id = "001",
-//        title = "Account name",
-//        account = "UA 000000000000000",
-//        defaultText = "По умолчанию",
-//        balanceSum = BigDecimal.valueOf(11500.50),
-//        currency = "UAH"
-//    ),
-//    CardDto(
-//        id = "002",
-//        title = "Title",
-//        account = "UA 000000000000000",
-//        defaultText = "По умолчанию",
-//        balanceSum = BigDecimal.valueOf(11200500.50),
-//        currency = "UAH"
-//    ),
-//    CardDto(
-//        id = "003",
-//        title = "Title LongLongTitle Very Long Title LongLongTitle Very Long Title",
-//        account = "UA 000000000000000",
-//        defaultText = "По умолчанию",
-//        balanceSum = BigDecimal.valueOf(1144444444500.50),
-//        currency = "UAH"
-//    ),
-//    CardDto(
-//        id = "004",
-//        title = "fours card",
-//        account = "UA 000000000000000",
-//        defaultText = "По умолчанию",
-//        balanceSum = BigDecimal.valueOf(0.00),
-//        currency = "UAH"
-//    )
-//)
-
-val cards = listOf(
+var cards = listOf(
     CardDto(
         id = "001",
         title = "Account name",
         account = "UA 000000000000000",
         defaultText = "По умолчанию",
         balanceSum = 11500.50,
-        currency = "UAH"
+        currency = "UAH",
+        favourite = 0,
     ),
     CardDto(
         id = "002",
         title = "Title",
         account = "UA 000000000000000",
         defaultText = "По умолчанию",
-        balanceSum = 11200500.50,
-        currency = "UAH"
+        balanceSum = 200000.50,
+        currency = "UAH",
+        favourite = 1,
     ),
     CardDto(
         id = "003",
         title = "Title LongLongTitle Very Long Title LongLongTitle Very Long Title",
         account = "UA 000000000000000",
         defaultText = "По умолчанию",
-        balanceSum = 11258422244444444500.50,
-        currency = "UAH"
+        balanceSum = 3000000.50,
+        currency = "UAH",
+        favourite = 0,
     ),
     CardDto(
         id = "004",
@@ -71,10 +39,10 @@ val cards = listOf(
         account = "UA 000000000000000",
         defaultText = "По умолчанию",
         balanceSum = 0.00,
-        currency = "UAH"
+        currency = "UAH",
+        favourite = 2,
     )
 )
-
 
 val sectionTransactions = listOf(
     TransactionItemDto(
