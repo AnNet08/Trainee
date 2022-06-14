@@ -5,7 +5,7 @@ import com.example.myfigma.ui.CardDto
 import com.example.myfigma.ui.TransactionItemDto
 import java.math.BigDecimal
 
-var cards = listOf(
+var cardsDemo = mutableListOf(
     CardDto(
         id = "001",
         title = "Account name",
@@ -13,7 +13,7 @@ var cards = listOf(
         defaultText = "По умолчанию",
         balanceSum = 11500.50,
         currency = "UAH",
-        favourite = 0,
+        favourite = false,
     ),
     CardDto(
         id = "002",
@@ -22,7 +22,7 @@ var cards = listOf(
         defaultText = "По умолчанию",
         balanceSum = 200000.50,
         currency = "UAH",
-        favourite = 1,
+        favourite = false,
     ),
     CardDto(
         id = "003",
@@ -31,7 +31,7 @@ var cards = listOf(
         defaultText = "По умолчанию",
         balanceSum = 3000000.50,
         currency = "UAH",
-        favourite = 0,
+        favourite = false,
     ),
     CardDto(
         id = "004",
@@ -40,7 +40,7 @@ var cards = listOf(
         defaultText = "По умолчанию",
         balanceSum = 0.00,
         currency = "UAH",
-        favourite = 2,
+        favourite = false,
     )
 )
 

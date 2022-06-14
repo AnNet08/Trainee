@@ -7,7 +7,7 @@ data class CardDto(
     val defaultText: String,
     val balanceSum: Double,
     val currency: String,
-    var favourite: Int
+    var favourite: Boolean
 )
 
 data class TransactionItemDto(

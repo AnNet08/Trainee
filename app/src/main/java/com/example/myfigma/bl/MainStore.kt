@@ -1,12 +1,10 @@
 package com.example.myfigma.bl
 
-import androidx.compose.ui.res.stringResource
-import com.example.myfigma.R
 import com.example.myfigma.bl.nanoredux.Action
 import com.example.myfigma.bl.nanoredux.Effect
 import com.example.myfigma.bl.nanoredux.State
 import com.example.myfigma.bl.nanoredux.Store
-import com.example.myfigma.demo.cards
+import com.example.myfigma.demo.cardsDemo
 import com.example.myfigma.demo.sectionTransactions
 import com.example.myfigma.ui.CardDto
 import com.example.myfigma.ui.TransactionItemDto
@@ -23,7 +21,9 @@ data class MainState(
     val transactions: List<TransactionItemDto>,
     val searchText: String = "",
     val showCardTitleEditDialog: Boolean = false,
-    val cardsAmount: Double = 0.00
+    val cardsAmount: Double = 0.00,
+    val currentCardIndex: Int = 0,
+    val needToScrollToCardItem: Boolean = false,
 ) : State
 
 sealed class MainAction : Action {
@@ -35,8 +35,9 @@ sealed class MainAction : Action {
     data class OpenCardTitleEditDialog(val showDialog: Boolean) : MainAction()
     data class CardTitleChange(val title: String, val idCard: String) : MainAction()
     data class ShowTransactionsList(val list: List<TransactionItemDto>) : MainAction()
-    data class ChangeFavouriteCards(val card: CardDto) : MainAction()
+    data class ChangeFavouriteCards(val idCard: String) : MainAction()
     data class ShowErrorMessage(val message: String) : MainAction()
+    data class ChangeNeedToScrollToCardItem(val needToScrollToCardItem: Boolean) : MainAction()
 }
 
 sealed class MainSideEffect : Effect {
@@ -52,8 +53,8 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
         MutableStateFlow(
             MainState(
                 transactions = sectionTransactions,
-                cards = cards,
-                cardsAmount = getCardsAmount(cards)
+                cards = cardsDemo,
+                cardsAmount = getCardsAmount(cardsDemo)
             )
         )
 
@@ -92,37 +93,50 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
                 oldState.copy(showCardTitleEditDialog = action.showDialog)
             }
             is MainAction.CardTitleChange -> {
-                val curCards = cards.filter { card -> card.id == action.idCard }
-                for (it in curCards) {
-                    it.title = action.title
+                val copiedCardsList = oldState.cards.toMutableList()
+                val curCard = copiedCardsList.find { card -> card.id == action.idCard }
+                if (curCard != null) {
+                    val curIndex = copiedCardsList.indexOf(curCard)
+                    copiedCardsList[curIndex] = curCard.copy(title = action.title)
+                    oldState.copy(cards = copiedCardsList)
+                } else {
+                    oldState
                 }
-                oldState.copy(cards = cards)
             }
             is MainAction.ShowTransactionsList -> {
                 oldState.copy(transactions = action.list)
+            }
+            is MainAction.ChangeNeedToScrollToCardItem -> {
+                oldState.copy(needToScrollToCardItem = action.needToScrollToCardItem)
             }
             is MainAction.ShowErrorMessage -> {
                 launch { sideEffect.emit(MainSideEffect.ShowErrorMessage(action.message)) }
                 oldState
             }
             is MainAction.ChangeFavouriteCards -> {
-                val curCards = cards.filter { card -> card.id == action.card.id }
-                for (card in curCards) {
-                    if (card.favourite > 0) {
-                        card.favourite = 0
-                    }
-                    else {
-                        val favouriteCards = cards.filter { currentCard -> currentCard.favourite > 0 }
-                        if(favouriteCards.count() < 2){
-                            card.favourite++
-                        }
-                        else{
+                val copiedCardsList = oldState.cards.toMutableList()
+                val curCard = copiedCardsList.find { card -> card.id == action.idCard }
+                val curCardIndex = copiedCardsList.indexOf(curCard)
+                if (curCard != null) {
+                    if (curCard.favourite) {
+                        copiedCardsList[curCardIndex] = curCard.copy(favourite = false)
+                    } else {
+                        val favouriteCards =
+                            copiedCardsList.filter { currentCard -> currentCard.favourite }
+                        if (favouriteCards.count() < 2) {
+                            copiedCardsList[curCardIndex] = curCard.copy(favourite = true)
+                        } else {
                             dispatch(MainAction.ShowErrorMessage("Неможливо вибрати більше двох улюблених карт!"))
                         }
                     }
                 }
-                val sortedCards = cards.sortedByDescending { it.favourite }
-                oldState.copy(cards = sortedCards)
+                val sortedCards = copiedCardsList.sortedByDescending { it.favourite }
+                val cardIndexAfterSort =
+                    sortedCards.indexOf(sortedCards.find { card -> card.id == action.idCard })
+                if (cardIndexAfterSort != curCardIndex) {
+                    //dispatch(MainAction.ChangeNeedToScrollToCardItem(true))
+                }
+                oldState.copy(cards = sortedCards,currentCardIndex = cardIndexAfterSort)
             }
         }
         if (newState != oldState) {
@@ -130,8 +144,8 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
         }
     }
 
-    private fun getCardsAmount(cards: List<CardDto>):Double{
-        return cards.fold(0.0){previous, item-> previous + item.balanceSum}
+    private fun getCardsAmount(cards: List<CardDto>): Double {
+        return cards.fold(0.0) { previous, item -> previous + item.balanceSum }
     }
 
     private fun showFilteredTransactionsList(text: String) {

@@ -11,7 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.myfigma.bl.MainSideEffect
 import com.example.myfigma.bl.MainState
 import com.example.myfigma.bl.MainStore
-import com.example.myfigma.demo.cards
+import com.example.myfigma.demo.cardsDemo
 import com.example.myfigma.demo.sectionTransactions
 import com.example.myfigma.ui.MainPage
 import kotlinx.coroutines.CoroutineScope
@@ -66,7 +66,7 @@ fun DefaultPreview() {
     MainPage(
         MainState(
             transactions = sectionTransactions,
-            cards = cards
+            cards = cardsDemo
         )
     ) {
         //Preview

@@ -27,6 +27,7 @@ import com.example.myfigma.bl.MainAction
 import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.Background
 import com.example.myfigma.ui.theme.ScrolledHeader
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -56,8 +57,10 @@ fun ColumnScope.ScreenContent(
     dispatch: (MainAction) -> Unit,
     onTransformationOffsetChange: (Float) -> Unit
 ) {
+    var showSearchTransactionsField by remember { mutableStateOf(false) }
     Box(modifier = Modifier.weight(1f)) {
         val lazyListState = rememberLazyListState()
+        val coroutineScope = rememberCoroutineScope()
         var scrolledY = 0f
         var previousOffset = 0
         LazyColumn(
@@ -70,17 +73,25 @@ fun ColumnScope.ScreenContent(
                         scrolledY += lazyListState.firstVisibleItemScrollOffset - previousOffset
                         translationY = scrolledY * 1f
                         previousOffset = lazyListState.firstVisibleItemScrollOffset
-                        val alpha = if (lazyListState.firstVisibleItemIndex == 0) {
+                        val alpha: Float
+                        if (lazyListState.firstVisibleItemIndex == 0) {
                             val firstItemSize = lazyListState.layoutInfo.visibleItemsInfo[0].size
-                            lazyListState.firstVisibleItemScrollOffset.toFloat() / firstItemSize.toFloat()
-                        } else 1f
+                            alpha = lazyListState.firstVisibleItemScrollOffset.toFloat() / firstItemSize.toFloat()
+                            showSearchTransactionsField = false
+                        } else {
+                            alpha = 1f
+                        }
                         onTransformationOffsetChange(alpha)
                     }) {
                     MainScreen(state, dispatch)
                 }
             }
             stickyHeader {
-                Searcher(state, dispatch)
+                Searcher(
+                    state,
+                    dispatch,
+                    showSearchTransactionsField
+                ) { showSearchTransactionsField = it }
                 TransactionsListDivider()
             }
             val transactions = state.transactions
@@ -89,6 +100,14 @@ fun ColumnScope.ScreenContent(
                     transactions[currentItem],
                     onItemClick = { })
                 TransactionsListDivider()
+            }
+        }
+        if (showSearchTransactionsField) {
+            SideEffect {
+                coroutineScope.launch {
+                    lazyListState.scrollToItem(1, 0)
+                    showSearchTransactionsField = true
+                }
             }
         }
     }
@@ -106,7 +125,10 @@ fun MainScreen(state: MainState, dispatch: (MainAction) -> Unit) {
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            ShowButton("Платежи", R.drawable.data_transfer) { dispatch(MainAction.OpenTransfers("Платежи")) }
+            ShowButton(
+                "Платежи",
+                R.drawable.data_transfer
+            ) { dispatch(MainAction.OpenTransfers("Платежи")) }
             ShowButton("Выписка", R.drawable.check) { dispatch(MainAction.OpenChecks("Выписки")) }
         }
     }

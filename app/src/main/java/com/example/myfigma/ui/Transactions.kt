@@ -9,10 +9,17 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.TabRowDefaults.Divider
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -23,6 +30,8 @@ import com.example.myfigma.R
 import com.example.myfigma.bl.MainAction
 import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun TransactionsListItem(transactionItem: TransactionItemDto, onItemClick: (String) -> Unit) {
@@ -74,8 +83,17 @@ fun TransactionsListItem(transactionItem: TransactionItemDto, onItemClick: (Stri
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Searcher(state: MainState, dispatch: (MainAction) -> Unit) {
+fun Searcher(
+    state: MainState,
+    dispatch: (MainAction) -> Unit,
+    showSearchTransactionsField: Boolean,
+    enableToShowSearchTransactionsField: (Boolean) -> Unit
+) {
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    val coroutineScope = rememberCoroutineScope()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,23 +104,46 @@ fun Searcher(state: MainState, dispatch: (MainAction) -> Unit) {
                     topStart = 14.dp
                 )
             )
+            .clickable {
+                enableToShowSearchTransactionsField(true)
+                coroutineScope.launch {
+                    delay(200)
+                    focusRequester.requestFocus()
+                }
+            }
             .background(color = Surface)
             .padding(horizontal = 16.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Box{
+        Box {
             if (state.searchText.isEmpty()) {
                 Text(
                     text = stringResource(R.string.bottom_sheet_list_top_header),
                     style = TextStyle(fontSize = 18.sp, color = SurfaceSelected)
                 )
             }
-            BasicTextField(
-                value = state.searchText,
-                onValueChange = { value ->
-                    dispatch(MainAction.SearchTextChanged(value))
-                })
+            val keyboardController = LocalSoftwareKeyboardController.current
+            if (!showSearchTransactionsField) {
+                focusManager.clearFocus()
+            }
+                BasicTextField(
+                    value = state.searchText,
+                    enabled = showSearchTransactionsField,
+                    onValueChange = { value ->
+                        dispatch(MainAction.SearchTextChanged(value))
+                    },
+                    modifier = Modifier
+                        .focusRequester(focusRequester)
+                        .onFocusChanged { state ->
+                            if (state.hasFocus) {
+                                coroutineScope.launch {
+                                    delay(200)
+                                    keyboardController?.show()
+                                }
+                            }
+                        },
+                )
         }
         Image(
             painter = painterResource(R.drawable.button_search),

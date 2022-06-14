@@ -186,7 +186,7 @@ fun ShowCardColumn(cardDto: CardDto) {
 
 @Composable
 fun ShowCardConstraint(dispatch: (MainAction) -> Unit, card: CardDto) {
-    val favouriteImg = if (card.favourite in 1..2) R.drawable.star else R.drawable.not_selected_star
+    val favouriteImg = if (card.favourite) R.drawable.star else R.drawable.not_selected_star
     ConstraintLayout(
         modifier = Modifier
             .size(width = 312.dp, height = 184.dp)
@@ -244,24 +244,27 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, card: CardDto) {
                     top.linkTo(titleText.bottom)
                 }
         )
-        Text(
-            text = card.defaultText,
-            softWrap = false,
-            overflow = TextOverflow.Ellipsis,
-            style = TextStyle(fontSize = 10.sp),
-            modifier = Modifier
-                .widthIn(0.dp, 280.dp)
-                .constrainAs(idText) {
-                    bottom.linkTo(starImg.top)
-                }
-                .padding(vertical = 8.dp)
-        )
+        if (card.favourite) {
+            Text(
+                text = card.defaultText,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                style = TextStyle(fontSize = 10.sp),
+                modifier = Modifier
+                    .widthIn(0.dp, 280.dp)
+                    .constrainAs(idText) {
+                        bottom.linkTo(starImg.top)
+                    }
+                    .padding(vertical = 8.dp)
+            )
+        }
         Image(
             painter = painterResource(favouriteImg),
             contentDescription = null,
             modifier = Modifier
                 .clickable {
-                    dispatch(MainAction.ChangeFavouriteCards(card))
+                    //dispatch(MainAction.ChangeNeedToScrollToCardItem(false))
+                    dispatch(MainAction.ChangeFavouriteCards(card.id))
                 }
                 .constrainAs(starImg) {
                     bottom.linkTo(parent.bottom)
