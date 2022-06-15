@@ -263,7 +263,6 @@ fun ShowCardConstraint(dispatch: (MainAction) -> Unit, card: CardDto) {
             contentDescription = null,
             modifier = Modifier
                 .clickable {
-                    //dispatch(MainAction.ChangeNeedToScrollToCardItem(false))
                     dispatch(MainAction.ChangeFavouriteCards(card.id))
                 }
                 .constrainAs(starImg) {

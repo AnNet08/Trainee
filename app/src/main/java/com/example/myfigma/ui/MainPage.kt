@@ -24,14 +24,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myfigma.R
 import com.example.myfigma.bl.MainAction
+import com.example.myfigma.bl.MainSideEffect
 import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.Background
 import com.example.myfigma.ui.theme.ScrolledHeader
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
+fun MainPage(state: MainState, sideEffect: Flow<MainSideEffect>, dispatch: (MainAction) -> Unit) {
     var transformationOffset by remember { mutableStateOf(0f) }
     val alpha = if (transformationOffset < 0.75f) 0f else (transformationOffset - 0.75f) * 4
     Column(
@@ -42,6 +44,7 @@ fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
         MyHeader(value = alpha, state = state, dispatch = dispatch)
         ScreenContent(
             state = state,
+            sideEffect = sideEffect,
             dispatch = dispatch
         ) {
             transformationOffset = it
@@ -54,6 +57,7 @@ fun MainPage(state: MainState, dispatch: (MainAction) -> Unit) {
 @Composable
 fun ColumnScope.ScreenContent(
     state: MainState,
+    sideEffect: Flow<MainSideEffect>,
     dispatch: (MainAction) -> Unit,
     onTransformationOffsetChange: (Float) -> Unit
 ) {
@@ -83,7 +87,7 @@ fun ColumnScope.ScreenContent(
                         }
                         onTransformationOffsetChange(alpha)
                     }) {
-                    MainScreen(state, dispatch)
+                    MainScreen(state, sideEffect, dispatch)
                 }
             }
             stickyHeader {
@@ -114,12 +118,12 @@ fun ColumnScope.ScreenContent(
 }
 
 @Composable
-fun MainScreen(state: MainState, dispatch: (MainAction) -> Unit) {
+fun MainScreen(state: MainState, sideEffect: Flow<MainSideEffect>, dispatch: (MainAction) -> Unit) {
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ShowHorizontalPager(state, dispatch)
+        ShowHorizontalPager(state, sideEffect, dispatch)
         Row(
             modifier = Modifier
                 .fillMaxWidth(),

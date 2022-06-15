@@ -1,6 +1,7 @@
 package com.example.myfigma
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import java.util.logging.LogRecord
 
 class MainActivity : ComponentActivity(),
     CoroutineScope by CoroutineScope(Dispatchers.Main) {
@@ -31,7 +33,7 @@ class MainActivity : ComponentActivity(),
         super.onCreate(savedInstanceState)
         setContent {
             val state by store.observeState().collectAsState()
-            MainPage(state) { action ->
+            MainPage(state, store.observeSideEffect()) { action ->
                 store.dispatch(action)
             }
         }
@@ -45,10 +47,14 @@ class MainActivity : ComponentActivity(),
                     Toast.makeText(this, "TODO", Toast.LENGTH_SHORT).show()
                 }
                 is MainSideEffect.ShowMessageToast -> {
-                    Toast.makeText(this, effect.message + " не реалізовані", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, effect.message + " не реалізовані", Toast.LENGTH_SHORT)
+                        .show()
                 }
                 is MainSideEffect.ShowErrorMessage -> {
                     Toast.makeText(this, effect.message, Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    Log.d("SideEffect", "SideEffect (ScrollToCardItem) was missed")
                 }
             }
         }.launchIn(this)
@@ -63,14 +69,7 @@ class MainActivity : ComponentActivity(),
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    MainPage(
-        MainState(
-            transactions = sectionTransactions,
-            cards = cardsDemo
-        )
-    ) {
-        //Preview
-    }
+    //Preview
 }
 
 

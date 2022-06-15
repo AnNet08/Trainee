@@ -22,8 +22,6 @@ data class MainState(
     val searchText: String = "",
     val showCardTitleEditDialog: Boolean = false,
     val cardsAmount: Double = 0.00,
-    val currentCardIndex: Int = 0,
-    val needToScrollToCardItem: Boolean = false,
 ) : State
 
 sealed class MainAction : Action {
@@ -37,13 +35,13 @@ sealed class MainAction : Action {
     data class ShowTransactionsList(val list: List<TransactionItemDto>) : MainAction()
     data class ChangeFavouriteCards(val idCard: String) : MainAction()
     data class ShowErrorMessage(val message: String) : MainAction()
-    data class ChangeNeedToScrollToCardItem(val needToScrollToCardItem: Boolean) : MainAction()
 }
 
 sealed class MainSideEffect : Effect {
     object ShowTodoToast : MainSideEffect()
     class ShowMessageToast(val message: String) : MainSideEffect()
     class ShowErrorMessage(val message: String) : MainSideEffect()
+    class ScrollToCardItem(val cardIndex: Int) : MainSideEffect()
 }
 
 class MainStore : Store<MainState, MainAction, MainSideEffect>,
@@ -106,42 +104,43 @@ class MainStore : Store<MainState, MainAction, MainSideEffect>,
             is MainAction.ShowTransactionsList -> {
                 oldState.copy(transactions = action.list)
             }
-            is MainAction.ChangeNeedToScrollToCardItem -> {
-                oldState.copy(needToScrollToCardItem = action.needToScrollToCardItem)
-            }
             is MainAction.ShowErrorMessage -> {
                 launch { sideEffect.emit(MainSideEffect.ShowErrorMessage(action.message)) }
                 oldState
             }
             is MainAction.ChangeFavouriteCards -> {
-                val copiedCardsList = oldState.cards.toMutableList()
-                val curCard = copiedCardsList.find { card -> card.id == action.idCard }
-                val curCardIndex = copiedCardsList.indexOf(curCard)
-                if (curCard != null) {
-                    if (curCard.favourite) {
-                        copiedCardsList[curCardIndex] = curCard.copy(favourite = false)
-                    } else {
-                        val favouriteCards =
-                            copiedCardsList.filter { currentCard -> currentCard.favourite }
-                        if (favouriteCards.count() < 2) {
-                            copiedCardsList[curCardIndex] = curCard.copy(favourite = true)
-                        } else {
-                            dispatch(MainAction.ShowErrorMessage("Неможливо вибрати більше двох улюблених карт!"))
-                        }
-                    }
-                }
-                val sortedCards = copiedCardsList.sortedByDescending { it.favourite }
-                val cardIndexAfterSort =
-                    sortedCards.indexOf(sortedCards.find { card -> card.id == action.idCard })
-                if (cardIndexAfterSort != curCardIndex) {
-                    //dispatch(MainAction.ChangeNeedToScrollToCardItem(true))
-                }
-                oldState.copy(cards = sortedCards,currentCardIndex = cardIndexAfterSort)
+                val sortedCards = getSortedCardsList(oldState.cards.toMutableList(), action.idCard)
+                oldState.copy(cards = sortedCards)
             }
         }
         if (newState != oldState) {
             state.value = newState
         }
+    }
+
+    private fun getSortedCardsList(copiedCardsList: MutableList<CardDto>, idCard: String) : List<CardDto>{
+        val curCard = copiedCardsList.find { card -> card.id == idCard }
+        val curCardIndex = copiedCardsList.indexOf(curCard)
+        if (curCard != null) {
+            if (curCard.favourite) {
+                copiedCardsList[curCardIndex] = curCard.copy(favourite = false)
+            } else {
+                val favouriteCards =
+                    copiedCardsList.filter { currentCard -> currentCard.favourite }
+                if (favouriteCards.count() < 2) {
+                    copiedCardsList[curCardIndex] = curCard.copy(favourite = true)
+                } else {
+                    dispatch(MainAction.ShowErrorMessage("Неможливо вибрати більше двох улюблених карт!"))
+                }
+            }
+        }
+        val sortedCards = copiedCardsList.sortedByDescending { it.favourite }
+        val cardIndexAfterSort =
+            sortedCards.indexOf(sortedCards.find { card -> card.id == idCard })
+        if (cardIndexAfterSort != curCardIndex) {
+            launch { sideEffect.emit(MainSideEffect.ScrollToCardItem(cardIndexAfterSort)) }
+        }
+        return sortedCards
     }
 
     private fun getCardsAmount(cards: List<CardDto>): Double {
