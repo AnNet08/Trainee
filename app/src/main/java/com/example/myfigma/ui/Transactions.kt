@@ -134,7 +134,7 @@ fun Searcher(
             }
             BasicTextField(
                 value = state.searchText,
-                enabled = showSearchTransactionsField || state.searchText.isNotEmpty(),
+                enabled = showSearchTransactionsField,
                 onValueChange = { value ->
                     dispatch(MainAction.SearchTextChanged(value))
                 },
