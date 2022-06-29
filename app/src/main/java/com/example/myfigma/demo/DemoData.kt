@@ -5,7 +5,7 @@ import com.example.myfigma.ui.CardDto
 import com.example.myfigma.ui.TransactionItemDto
 import java.math.BigDecimal
 
-var cardsDemo = mutableListOf(
+val cardsDemo = mutableListOf(
     CardDto(
         id = "001",
         title = "Account name",

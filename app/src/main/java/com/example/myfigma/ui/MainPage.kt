@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myfigma.R
@@ -28,10 +28,10 @@ import com.example.myfigma.bl.MainSideEffect
 import com.example.myfigma.bl.MainState
 import com.example.myfigma.ui.theme.Background
 import com.example.myfigma.ui.theme.ScrolledHeader
+import com.example.myfigma.ui.theme.Surface
+import com.example.myfigma.ui.theme.SurfaceSelected
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainPage(state: MainState, sideEffect: Flow<MainSideEffect>, dispatch: (MainAction) -> Unit) {
     var transformationOffset by remember { mutableStateOf(0f) }
@@ -61,14 +61,17 @@ fun ColumnScope.ScreenContent(
     dispatch: (MainAction) -> Unit,
     onTransformationOffsetChange: (Float) -> Unit
 ) {
-    var showSearchTransactionsField by remember { mutableStateOf(false) }
     Box(modifier = Modifier.weight(1f)) {
         val lazyListState = rememberLazyListState()
-        val coroutineScope = rememberCoroutineScope()
+        val showSearchTransactionsField by remember {
+            derivedStateOf {
+                lazyListState.firstVisibleItemIndex > 0
+            }
+        }
         var scrolledY = 0f
         var previousOffset = 0
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(1F),
             state = lazyListState
         ) {
             item {
@@ -77,13 +80,11 @@ fun ColumnScope.ScreenContent(
                         scrolledY += lazyListState.firstVisibleItemScrollOffset - previousOffset
                         translationY = scrolledY * 1f
                         previousOffset = lazyListState.firstVisibleItemScrollOffset
-                        val alpha: Float
-                        if (lazyListState.firstVisibleItemIndex == 0) {
+                        val alpha: Float = if (lazyListState.firstVisibleItemIndex == 0) {
                             val firstItemSize = lazyListState.layoutInfo.visibleItemsInfo[0].size
-                            alpha = lazyListState.firstVisibleItemScrollOffset.toFloat() / firstItemSize.toFloat()
-                            showSearchTransactionsField = false
+                            lazyListState.firstVisibleItemScrollOffset.toFloat() / firstItemSize.toFloat()
                         } else {
-                            alpha = 1f
+                            1f
                         }
                         onTransformationOffsetChange(alpha)
                     }) {
@@ -94,24 +95,38 @@ fun ColumnScope.ScreenContent(
                 Searcher(
                     state,
                     dispatch,
-                    showSearchTransactionsField
-                ) { showSearchTransactionsField = it }
+                    showSearchTransactionsField,
+                    lazyListState
+                )
                 TransactionsListDivider()
             }
             val transactions = state.transactions
-            items(transactions.count()) { currentItem ->
-                TransactionsListItem(
-                    transactions[currentItem],
-                    onItemClick = { })
-                TransactionsListDivider()
-            }
-        }
-        if (showSearchTransactionsField) {
-            SideEffect {
-                coroutineScope.launch {
-                    lazyListState.scrollToItem(1, 0)
-                    showSearchTransactionsField = true
+            if (transactions.isNotEmpty()) {
+                items(transactions.count()) { currentItem ->
+                    TransactionsListItem(
+                        transactions[currentItem],
+                        onItemClick = { })
+                    TransactionsListDivider()
                 }
+            } else {
+                item {
+                    Text(
+                        text = stringResource(R.string.empty_list_message),
+                        style = TextStyle(fontSize = 18.sp, color = SurfaceSelected),
+                        modifier = Modifier
+                            .background(color = Surface)
+                            .fillMaxWidth()
+                            .padding(top = 24.dp, bottom = 24.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            item {
+                Box(
+                    modifier = Modifier
+                        .background(color = Surface)
+                        .padding(24.dp)
+                )
             }
         }
     }

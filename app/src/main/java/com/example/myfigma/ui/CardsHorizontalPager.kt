@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myfigma.bl.MainAction
@@ -20,7 +18,11 @@ import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun ShowHorizontalPager(state: MainState, sideEffect: Flow<MainSideEffect>, dispatch: (MainAction) -> Unit) {
+fun ShowHorizontalPager(
+    state: MainState,
+    sideEffect: Flow<MainSideEffect>,
+    dispatch: (MainAction) -> Unit
+) {
     val pagerState = rememberPagerState()
     val cards = state.cards.toList()
     HorizontalPager(
@@ -30,11 +32,11 @@ fun ShowHorizontalPager(state: MainState, sideEffect: Flow<MainSideEffect>, disp
     ) { currentCard ->
         ShowCardConstraint(dispatch, cards[currentCard])
     }
-    val currentState by sideEffect.collectAsState(initial = 0)
-    if (currentState is MainSideEffect.ScrollToCardItem) {
-        val currentCardIndex = (currentState as MainSideEffect.ScrollToCardItem).cardIndex
-        LaunchedEffect(currentState) {
-            pagerState.animateScrollToPage(currentCardIndex)
+    LaunchedEffect(Unit) {
+        sideEffect.collect { effect ->
+            if (effect is MainSideEffect.ScrollToCardItem) {
+                pagerState.animateScrollToPage(effect.cardIndex)
+            }
         }
     }
     CardTitleEditDialog(card = cards[pagerState.currentPage], state = state, dispatch = dispatch)

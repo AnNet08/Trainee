@@ -8,4 +8,5 @@
     <string name="card_title">Наименование</string>
     <string name="cancel_text">Отмена</string>
     <string name="ok_text">Ok</string>
+    <string name="empty_list_message">Немає даних для відображення</string>
 </resources>

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.TabRowDefaults.Divider
@@ -89,7 +90,7 @@ fun Searcher(
     state: MainState,
     dispatch: (MainAction) -> Unit,
     showSearchTransactionsField: Boolean,
-    enableToShowSearchTransactionsField: (Boolean) -> Unit
+    lazyListState: LazyListState
 ) {
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -105,7 +106,11 @@ fun Searcher(
                 )
             )
             .clickable {
-                enableToShowSearchTransactionsField(true)
+                if (!showSearchTransactionsField) {
+                    coroutineScope.launch {
+                        lazyListState.scrollToItem(1, 0)
+                    }
+                }
                 coroutineScope.launch {
                     delay(200)
                     focusRequester.requestFocus()
@@ -127,23 +132,23 @@ fun Searcher(
             if (!showSearchTransactionsField) {
                 focusManager.clearFocus()
             }
-                BasicTextField(
-                    value = state.searchText,
-                    enabled = showSearchTransactionsField,
-                    onValueChange = { value ->
-                        dispatch(MainAction.SearchTextChanged(value))
-                    },
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .onFocusChanged { state ->
-                            if (state.hasFocus) {
-                                coroutineScope.launch {
-                                    delay(200)
-                                    keyboardController?.show()
-                                }
+            BasicTextField(
+                value = state.searchText,
+                enabled = showSearchTransactionsField || state.searchText.isNotEmpty(),
+                onValueChange = { value ->
+                    dispatch(MainAction.SearchTextChanged(value))
+                },
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { state ->
+                        if (state.hasFocus) {
+                            coroutineScope.launch {
+                                delay(200)
+                                keyboardController?.show()
                             }
-                        },
-                )
+                        }
+                    },
+            )
         }
         Image(
             painter = painterResource(R.drawable.button_search),
